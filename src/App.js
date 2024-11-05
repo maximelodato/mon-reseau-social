@@ -12,7 +12,9 @@ import UserProfile from './components/Profile/UserProfile';
 import Landing from './components/Landing';
 import PostDetail from './components/Posts/PostDetails';
 import EditPost from './components/Posts/EditPost';
-import UserList from './components/Profile/UserList'; 
+import UserList from './components/Profile/UserList';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Box } from '@mui/material';
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -35,19 +37,125 @@ function App() {
   }, [user]);
 
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={user ? <Home /> : <Landing />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
-        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-        <Route path="/user/:username" element={user ? <UserProfile /> : <Navigate to="/login" />} />
-        <Route path="/post/:postId" element={user ? <PostDetail /> : <Navigate to="/login" />} /> {/* Nouvelle route */}
-        <Route path="/post/edit/:post_id" element={user ? <EditPost /> : <Navigate to="/login" />} />
-        <Route path="/users" element={user ? <UserList /> : <Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <Box
+      sx={{
+        backgroundColor: '#a8a9ad', // Gris Nardo
+        minHeight: '100vh', // S'assurer que le fond couvre toute la hauteur de la page
+        paddingBottom: '50px', // Optionnel: pour éviter le chevauchement des contenus avec la fin de la page
+      }}
+    >
+      <Router>
+        <Navbar />
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {user ? <Home /> : <Landing />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {!user ? <Login /> : <Navigate to="/" />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {!user ? <Register /> : <Navigate to="/" />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {user ? <Profile /> : <Navigate to="/login" />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/user/:username"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {user ? <UserProfile /> : <Navigate to="/login" />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/post/:postId"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {user ? <PostDetail /> : <Navigate to="/login" />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/post/edit/:post_id"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {user ? <EditPost /> : <Navigate to="/login" />}
+                </motion.div>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {user ? <UserList /> : <Navigate to="/login" />}
+                </motion.div>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
+      </Router>
+    </Box>
   );
 }
 

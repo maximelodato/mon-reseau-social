@@ -1,8 +1,9 @@
-// src/components/Auth/Register.js
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import './Register.css';
 
 function Register() {
   const [, setUser] = useAtom(userAtom);
@@ -33,7 +34,7 @@ function Register() {
         if (result.error.message === "Email or Username are already taken") {
           setErrorMessage("Cet email ou nom d'utilisateur est déjà utilisé. Veuillez en choisir un autre.");
         } else {
-          setErrorMessage(result.error.message || 'Erreur lors de l\'inscription');
+          setErrorMessage(result.error.message || "Erreur lors de l'inscription");
         }
       } else if (result.jwt) {
         setUser({ jwt: result.jwt, user: result.user });
@@ -41,23 +42,43 @@ function Register() {
       }
     } catch (error) {
       console.error('Erreur:', error);
-      setErrorMessage('Une erreur s\'est produite lors de l\'inscription. Veuillez réessayer plus tard.');
+      setErrorMessage("Une erreur s'est produite lors de l'inscription. Veuillez réessayer plus tard.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleRegister} style={styles.form}>
-        <h2 style={styles.title}>Inscription</h2>
-        {errorMessage && <p style={styles.error}>{errorMessage}</p>}
+    <motion.div
+      className="container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.form
+        onSubmit={handleRegister}
+        className="form"
+        initial={{ opacity: 0.9, scale: 1 }}
+        whileHover={{ scale: 1.02, boxShadow: '0 0 20px #ff8c00' }}
+        transition={{ duration: 0.3 }}
+      >
+        <h2 className="title">Inscription</h2>
+        {errorMessage && (
+          <motion.p
+            className="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {errorMessage}
+          </motion.p>
+        )}
         <input
           type="text"
           placeholder="Nom d'utilisateur"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={styles.input}
+          className="input"
           required
         />
         <input
@@ -65,7 +86,7 @@ function Register() {
           placeholder="E-mail"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
+          className="input"
           required
         />
         <input
@@ -73,59 +94,21 @@ function Register() {
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
+          className="input"
           required
         />
-        <button type="submit" style={styles.button} disabled={loading}>
+        <motion.button
+          type="submit"
+          className="button"
+          disabled={loading}
+          whileHover={{ scale: 1.05, boxShadow: '0 0 15px #ff8c00' }}
+          transition={{ duration: 0.3 }}
+        >
           {loading ? 'Inscription en cours...' : "S'inscrire"}
-        </button>
-      </form>
-    </div>
+        </motion.button>
+      </motion.form>
+    </motion.div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    backgroundColor: '#f0f2f5',
-  },
-  form: {
-    padding: '20px',
-    backgroundColor: '#fff',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    width: '300px',
-    textAlign: 'center',
-  },
-  title: {
-    marginBottom: '20px',
-    fontSize: '1.8em',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    margin: '10px 0',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-  },
-  button: {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '5px',
-    border: 'none',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    cursor: 'pointer',
-    fontSize: '1em',
-  },
-  error: {
-    color: 'red',
-    marginBottom: '10px',
-  },
-};
 
 export default Register;

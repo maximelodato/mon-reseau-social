@@ -1,9 +1,12 @@
-// src/components/Posts/Post.js
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
 import { Link } from 'react-router-dom';
-import './Post.css';
+import { Card, CardHeader, CardContent, CardActions, Typography, IconButton } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { motion } from 'framer-motion';
+import Avatar from '@mui/material/Avatar';
 
 function Post({ post, refreshPosts, readonly }) {
   const [user] = useAtom(userAtom);
@@ -25,7 +28,7 @@ function Post({ post, refreshPosts, readonly }) {
   }
 
   const handleLikeToggle = async () => {
-    if (readonly || !user?.jwt) return; // Désactiver l'action si en mode lecture seule ou non connecté
+    if (readonly || !user?.jwt) return;
 
     const updatedLikes = hasLiked
       ? (post.users_likes || []).filter((id) => id !== user.user.id)
@@ -51,7 +54,7 @@ function Post({ post, refreshPosts, readonly }) {
       if (response.ok) {
         setHasLiked(!hasLiked);
         setLikeCount(updatedLikeCount);
-        refreshPosts(); // Mettre à jour les posts après un like/dislike
+        refreshPosts();
       } else {
         const errorText = await response.text();
         setErrorMessage(`Erreur lors de la mise à jour du like: ${errorText}`);
@@ -63,7 +66,7 @@ function Post({ post, refreshPosts, readonly }) {
   };
 
   const handleDelete = async () => {
-    if (readonly || !user?.jwt) return; // Désactiver l'action si en mode lecture seule ou non connecté
+    if (readonly || !user?.jwt) return;
 
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce post ?")) {
       try {
@@ -75,8 +78,7 @@ function Post({ post, refreshPosts, readonly }) {
         });
 
         if (response.ok) {
-          console.log('Post supprimé avec succès');
-          refreshPosts(); // Mettre à jour les posts après suppression
+          refreshPosts();
         } else {
           const errorText = await response.text();
           setErrorMessage(`Erreur lors de la suppression du post: ${errorText}`);
@@ -89,32 +91,77 @@ function Post({ post, refreshPosts, readonly }) {
   };
 
   return (
-    <div className="post-container">
-      <div className="post-header">
-        <Link to={`/user/${postAuthor.username || 'unknown'}`} className="post-author">
-          {postAuthor.username || 'Utilisateur inconnu'}
-        </Link>
-      </div>
-      <p className="post-text">{post.text}</p>
-
-      {/* Affichage des actions uniquement si readonly est faux et si l'utilisateur est connecté */}
-      <div className="post-actions">
-        {!readonly && user?.jwt && (
-          <>
-            <button onClick={handleLikeToggle} className="like-button">
-              {hasLiked ? "Je n'aime plus" : "J'aime"}
-            </button>
-            <span className="like-count">{likeCount} likes</span>
-
-            {String(user?.user?.id) === String(postAuthorId) && (
-              <button onClick={handleDelete} className="delete-button">Supprimer</button>
-            )}
-          </>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      whileHover={{ scale: 1.05 }}
+      style={{ marginBottom: '30px' }}
+    >
+      <Card
+        elevation={5}
+        sx={{
+          maxWidth: 600,
+          margin: 'auto',
+          borderRadius: '20px',
+          backgroundColor: '#1a1a1a',
+          color: '#fff',
+          boxShadow: '0 0 20px #ff8c00, 0 0 40px #ff8c00',
+          transition: 'transform 0.5s, box-shadow 0.5s',
+          ':hover': {
+            boxShadow: '0 0 40px #ff8c00, 0 0 80px #ff8c00',
+          },
+        }}
+      >
+        <CardHeader
+          avatar={
+            <Avatar sx={{ bgcolor: '#ff8c00', color: '#121212' }}>
+              {postAuthor.username[0].toUpperCase()}
+            </Avatar>
+          }
+          title={
+            <Link to={`/user/${postAuthor.username || 'unknown'}`} style={{ textDecoration: 'none', color: '#ff8c00' }}>
+              {postAuthor.username || 'Utilisateur inconnu'}
+            </Link>
+          }
+          subheader={<Typography sx={{ color: '#ffcc00' }}>{new Date(post.createdAt).toLocaleString()}</Typography>}
+        />
+        <CardContent>
+          <Typography variant="body1" sx={{ color: '#e0e0e0', textShadow: '0 0 10px #ff8c00' }}>
+            {post.text}
+          </Typography>
+        </CardContent>
+        <CardActions disableSpacing>
+          {!readonly && user?.jwt && (
+            <>
+              <IconButton
+                onClick={handleLikeToggle}
+                sx={{
+                  color: hasLiked ? '#ffcc00' : '#fff',
+                  transition: 'color 0.4s ease-in-out',
+                  ':hover': { color: '#ff8c00' },
+                }}
+              >
+                <FavoriteIcon />
+              </IconButton>
+              <Typography variant="body2" color="#ffcc00" sx={{ fontWeight: 'bold' }}>
+                {likeCount} {likeCount > 1 ? 'likes' : 'like'}
+              </Typography>
+              {String(user?.user?.id) === String(postAuthorId) && (
+                <IconButton onClick={handleDelete} sx={{ color: '#ff1744', ':hover': { color: '#ff5555' } }}>
+                  <DeleteIcon />
+                </IconButton>
+              )}
+            </>
+          )}
+        </CardActions>
+        {errorMessage && (
+          <Typography variant="body2" color="error" sx={{ marginLeft: 2, marginBottom: 2, textShadow: '0px 0px 5px #ff1744' }}>
+            {errorMessage}
+          </Typography>
         )}
-      </div>
-
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-    </div>
+      </Card>
+    </motion.div>
   );
 }
 

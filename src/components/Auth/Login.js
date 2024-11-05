@@ -1,8 +1,9 @@
-// src/components/Auth/Login.js
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import './Login.css';
 
 function Login() {
   const [, setUser] = useAtom(userAtom);
@@ -45,76 +46,58 @@ function Login() {
   };
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleLogin} style={styles.form}>
-        <h2 style={styles.title}>Connexion</h2>
-        {errorMessage && <p style={styles.error}>{errorMessage}</p>}
+    <motion.div
+      className="container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.form
+        className="form"
+        onSubmit={handleLogin}
+        initial={{ opacity: 0.9, scale: 1 }}
+        whileHover={{ scale: 1.02, boxShadow: '0 0 20px #ff8c00' }}
+        transition={{ duration: 0.3 }}
+      >
+        <h2 className="title">Connexion</h2>
+        {errorMessage && (
+          <motion.p
+            className="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {errorMessage}
+          </motion.p>
+        )}
         <input
           type="text"
+          className="input"
           placeholder="Nom d'utilisateur ou E-mail"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          style={styles.input}
           required
         />
         <input
           type="password"
+          className="input"
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
           required
         />
-        <button type="submit" style={styles.button} disabled={loading}>
+        <motion.button
+          type="submit"
+          className="button"
+          disabled={loading}
+          whileHover={{ scale: 1.05, boxShadow: '0 0 15px #ff8c00' }}
+          transition={{ duration: 0.3 }}
+        >
           {loading ? 'Connexion en cours...' : 'Se connecter'}
-        </button>
-      </form>
-    </div>
+        </motion.button>
+      </motion.form>
+    </motion.div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    backgroundColor: '#f0f2f5',
-  },
-  form: {
-    padding: '20px',
-    backgroundColor: '#fff',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    width: '300px',
-    textAlign: 'center',
-  },
-  title: {
-    marginBottom: '20px',
-    fontSize: '1.8em',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    margin: '10px 0',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-  },
-  button: {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '5px',
-    border: 'none',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    cursor: 'pointer',
-    fontSize: '1em',
-  },
-  error: {
-    color: 'red',
-    marginBottom: '10px',
-  },
-};
 
 export default Login;

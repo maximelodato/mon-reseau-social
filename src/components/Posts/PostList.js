@@ -1,8 +1,10 @@
+// src/components/Posts/PostList.js
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
 import Post from './Post';
-import './PostList.css';
+import { Box, TextField, Typography, CircularProgress, Alert, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
 
 function PostList({ refresh, readonly }) {
   const [user] = useAtom(userAtom);
@@ -59,31 +61,108 @@ function PostList({ refresh, readonly }) {
   }, [searchTerm, fetchPosts, refresh]);
 
   return (
-    <div className="post-list-container">
+    <Box
+      sx={{
+        maxWidth: 1400,
+        margin: 'auto',
+        padding: 3,
+        backgroundColor: '#0d0d0d',
+        borderRadius: 3,
+        boxShadow: '0 0 30px #00e6e6',
+        border: '2px solid #00e6e6',
+        color: '#ffffff',
+      }}
+    >
       {/* Champ de recherche */}
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Rechercher un post..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <TextField
+          fullWidth
+          variant="outlined"
+          label="Rechercher un post..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{
+            marginBottom: 3,
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: '#ff8c00',
+              },
+              '&:hover fieldset': {
+                borderColor: '#ffa500',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#ff8c00',
+              },
+            },
+            input: {
+              color: '#ff8c00',
+            },
+            label: {
+              color: '#ff8c00',
+            },
+          }}
+        />
+      </motion.div>
+
       {/* Message de chargement */}
-      {loading && <p className="loading-message">Chargement des posts...</p>}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', marginY: 3 }}>
+          <CircularProgress sx={{ color: '#00e6e6' }} />
+        </Box>
+      )}
 
       {/* Message d'erreur */}
-      {error && <p className="error-message">{error}</p>}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Alert severity="error" sx={{ marginBottom: 3, backgroundColor: '#1c1c1c', color: '#ff1744' }}>
+            {error}
+          </Alert>
+        </motion.div>
+      )}
 
       {/* Liste des posts */}
       {!loading && !error && posts.length > 0 ? (
-        posts.map((post) => (
-          <Post key={post.id} post={post} readonly={readonly} refreshPosts={() => fetchPosts(searchTerm)} />
-        ))
+        <Grid container spacing={4}>
+          {posts.map((post) => (
+            <Grid item xs={12} sm={6} md={4} key={post.id}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 20px #00e6e6' }}
+                style={{ borderRadius: '15px', overflow: 'hidden', backgroundColor: '#121212' }}
+              >
+                <Post
+                  post={post}
+                  readonly={readonly}
+                  refreshPosts={() => fetchPosts(searchTerm)}
+                />
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
       ) : (
-        !loading && !error && <p className="no-post-message">Aucun post trouvé.</p>
+        !loading && !error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', marginTop: 3, color: '#00e6e6' }}>
+              Aucun post trouvé.
+            </Typography>
+          </motion.div>
+        )
       )}
-    </div>
+    </Box>
   );
 }
 
