@@ -10,13 +10,52 @@ function UserProfile() {
   const [user] = useAtom(userAtom);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [error, setError] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [postsLoading, setPostsLoading] = useState(true);
+  const [profileError, setProfileError] = useState('');
+  const [postsError, setPostsError] = useState('');
+
+  const fetchUserPosts = useCallback(async (userId) => {
+    setPostsLoading(true);
+    setPostsError('');
+    try {
+      const response = await fetch(
+        `http://localhost:1337/api/posts?filters[user][id][$eq]=${userId}&populate=author&sort=createdAt:desc`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(user?.jwt && { Authorization: `Bearer ${user.jwt}` }),
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des posts');
+      }
+
+      const result = await response.json();
+      const formattedPosts = result.data.map((item) => ({
+        id: item.id,
+        ...item.attributes,
+        author: item.attributes.author?.data?.attributes,
+      }));
+      setPosts(formattedPosts);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des posts:', error);
+      setPostsError(error.message);
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [user?.jwt]);
 
   const fetchProfile = useCallback(async () => {
+    setProfileLoading(true);
+    setProfileError('');
     try {
       const response = await fetch(`http://localhost:1337/api/users?filters[username][$eq]=${username}`, {
         headers: {
-          Authorization: `Bearer ${user.jwt}`,
+          'Content-Type': 'application/json',
+          ...(user?.jwt && { Authorization: `Bearer ${user.jwt}` }), // Ajoutez le jeton si l'utilisateur est connecté
         },
       });
 
@@ -25,59 +64,53 @@ function UserProfile() {
       }
 
       const result = await response.json();
-      const targetUser = result.data?.[0];
+      const targetUser = result?.[0];
 
       if (targetUser) {
         setProfile(targetUser);
-
-        const postsResponse = await fetch(
-          `http://localhost:1337/api/posts?filters[user][id][$eq]=${targetUser.id}&populate=user&sort=createdAt:desc`,
-          {
-            headers: {
-              Authorization: `Bearer ${user.jwt}`,
-            },
-          }
-        );
-
-        if (!postsResponse.ok) {
-          throw new Error('Erreur lors de la récupération des posts');
-        }
-
-        const postsResult = await postsResponse.json();
-        const formattedPosts = postsResult.data.map((item) => ({
-          id: item.id,
-          ...item.attributes,
-          user: item.attributes.user.data.attributes,
-        }));
-        setPosts(formattedPosts);
+        fetchUserPosts(targetUser.id); // Récupère les posts après avoir trouvé l'utilisateur
       } else {
-        setError('Utilisateur non trouvé');
+        setProfileError('Utilisateur non trouvé');
       }
     } catch (error) {
       console.error('Erreur:', error);
-      setError(error.message);
+      setProfileError(error.message);
+    } finally {
+      setProfileLoading(false);
     }
-  }, [username, user.jwt]);
+  }, [username, user?.jwt, fetchUserPosts]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (username && user?.jwt) {
+      fetchProfile();
+    }
+  }, [fetchProfile, username, user?.jwt]);
 
   return (
     <div>
-      {error ? (
-        <p>{error}</p>
+      {profileLoading ? (
+        <p>Chargement du profil...</p>
+      ) : profileError ? (
+        <p style={{ color: 'red' }}>{profileError}</p>
       ) : profile ? (
         <>
           <h2>Profil de {profile.username}</h2>
-          <p>Description: {profile.description}</p>
+          <p>Description : {profile.description || 'Aucune description fournie'}</p>
           <h3>Posts de {profile.username}</h3>
-          {posts.map((post) => (
-            <Post key={post.id} post={post} refreshPosts={() => {}} />
-          ))}
+          {postsLoading ? (
+            <p>Chargement des posts...</p>
+          ) : postsError ? (
+            <p style={{ color: 'red' }}>{postsError}</p>
+          ) : posts.length > 0 ? (
+            posts.map((post) => (
+              <Post key={post.id} post={post} readonly={true} refreshPosts={() => {}} />
+            ))
+          ) : (
+            <p>Aucun post trouvé.</p>
+          )}
         </>
       ) : (
-        <p>Chargement...</p>
+        <p>Utilisateur non trouvé.</p>
       )}
     </div>
   );

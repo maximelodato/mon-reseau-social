@@ -1,23 +1,25 @@
-// src/components/Posts/PostList.js
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
 import Post from './Post';
+import './PostList.css';
 
-function PostList({ refresh, readonly }) { // Ajout de 'refresh' et 'readonly' en props
+function PostList({ refresh, readonly }) {
   const [user] = useAtom(userAtom);
-  const [posts, setPosts] = useState([]); // Ajout de l'état posts et son setter
+  const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchPosts = useCallback(async (search = '') => {
+    setLoading(true);
+    setError('');
     try {
-      // Construire l'URL de la requête
       const url = `http://localhost:1337/api/posts?populate=*&sort=createdAt:desc&filters[text][$contains]=${search}`;
 
-      // Construire les en-têtes conditionnellement en fonction de la connexion de l'utilisateur
       const headers = {
         'Content-Type': 'application/json',
-        ...(user?.jwt && { Authorization: `Bearer ${user.jwt}` }), // Ajouter le jeton seulement si l'utilisateur est connecté
+        ...(user?.jwt && { Authorization: `Bearer ${user.jwt}` }),
       };
 
       const response = await fetch(url, {
@@ -43,9 +45,12 @@ function PostList({ refresh, readonly }) { // Ajout de 'refresh' et 'readonly' e
           users_likes: item.attributes.users_likes?.data?.map((user) => user.id) || [],
         })) || [];
 
-      setPosts(formattedPosts); // Utilisation de setPosts pour mettre à jour l'état
+      setPosts(formattedPosts);
     } catch (error) {
       console.error('Erreur lors de la récupération des posts:', error);
+      setError('Impossible de récupérer les posts. Veuillez réessayer plus tard.');
+    } finally {
+      setLoading(false);
     }
   }, [user]);
 
@@ -54,21 +59,29 @@ function PostList({ refresh, readonly }) { // Ajout de 'refresh' et 'readonly' e
   }, [searchTerm, fetchPosts, refresh]);
 
   return (
-    <div>
+    <div className="post-list-container">
       {/* Champ de recherche */}
       <input
         type="text"
+        className="search-input"
         placeholder="Rechercher un post..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
+      
+      {/* Message de chargement */}
+      {loading && <p className="loading-message">Chargement des posts...</p>}
+
+      {/* Message d'erreur */}
+      {error && <p className="error-message">{error}</p>}
+
       {/* Liste des posts */}
-      {posts.length > 0 ? (
+      {!loading && !error && posts.length > 0 ? (
         posts.map((post) => (
           <Post key={post.id} post={post} readonly={readonly} refreshPosts={() => fetchPosts(searchTerm)} />
         ))
       ) : (
-        <p>Aucun post trouvé.</p>
+        !loading && !error && <p className="no-post-message">Aucun post trouvé.</p>
       )}
     </div>
   );

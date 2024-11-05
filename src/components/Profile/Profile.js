@@ -5,16 +5,21 @@ import { userAtom } from '../../atoms';
 
 function Profile() {
   const [user, setUser] = useAtom(userAtom);
-  const [username, setUsername] = useState(user.user.username);
-  const [description, setDescription] = useState(user.user.description || '');
+  const [username, setUsername] = useState(user?.user?.username || '');
+  const [description, setDescription] = useState(user?.user?.description || '');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+
     const data = {
       username,
       description,
     };
-  
+
     try {
       const response = await fetch(`http://localhost:1337/api/users-permissions/users/me`, {
         method: 'PUT',
@@ -24,7 +29,7 @@ function Profile() {
         },
         body: JSON.stringify(data),
       });
-  
+
       if (response.ok) {
         const updatedUser = await response.json();
         setUser({
@@ -39,32 +44,46 @@ function Profile() {
       } else {
         const errorData = await response.json();
         console.error('Erreur lors de la mise à jour:', errorData);
-        alert("Erreur lors de la mise à jour du profil : " + (errorData.error.message || 'non spécifiée'));
+        setError("Erreur lors de la mise à jour du profil : " + (errorData.error.message || 'non spécifiée'));
       }
     } catch (error) {
       console.error('Erreur:', error);
-      alert("Une erreur est survenue");
+      setError("Une erreur est survenue. Veuillez réessayer plus tard.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
       <h2>Mon Profil</h2>
-      <p>Nom d'utilisateur: {user.user.username}</p>
-      <p>Description: {user.user.description}</p>
+      <p>Nom d'utilisateur : {user.user.username}</p>
+      <p>Description : {user.user.description || 'Aucune description fournie'}</p>
 
       <h3>Modifier le profil</h3>
       <form onSubmit={handleUpdateProfile}>
         <label>
           Nom d'utilisateur:
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
         </label>
         <label>
           Description:
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </label>
-        <button type="submit">Mettre à jour</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Mise à jour en cours...' : 'Mettre à jour'}
+        </button>
       </form>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 }

@@ -3,27 +3,25 @@ import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
 import { Link } from 'react-router-dom';
+import './Post.css';
 
 function Post({ post, refreshPosts, readonly }) {
   const [user] = useAtom(userAtom);
   const [hasLiked, setHasLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.like || 0);
+  const [likeCount, setLikeCount] = useState(post?.like || 0);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (user?.user?.id && post.users_likes) {
+    if (user?.user?.id && post?.users_likes) {
       setHasLiked(post.users_likes.includes(user.user.id));
     }
-  }, [post.users_likes, user?.user?.id]);
+  }, [post?.users_likes, user?.user?.id]);
 
-  // Vérifiez les données du post dans la console
-  console.log('Données du post:', post);
-
-  const postAuthor = post.author;
-  const postAuthorId = post.author?.id;
+  const postAuthor = post?.author;
+  const postAuthorId = postAuthor?.id;
 
   if (!post || !postAuthor) {
-    return null; // Ou afficher un indicateur de chargement
+    return null; // Afficher un message ou un indicateur de chargement si les données ne sont pas disponibles
   }
 
   const handleLikeToggle = async () => {
@@ -53,7 +51,7 @@ function Post({ post, refreshPosts, readonly }) {
       if (response.ok) {
         setHasLiked(!hasLiked);
         setLikeCount(updatedLikeCount);
-        refreshPosts();
+        refreshPosts(); // Mettre à jour les posts après un like/dislike
       } else {
         const errorText = await response.text();
         setErrorMessage(`Erreur lors de la mise à jour du like: ${errorText}`);
@@ -78,7 +76,7 @@ function Post({ post, refreshPosts, readonly }) {
 
         if (response.ok) {
           console.log('Post supprimé avec succès');
-          refreshPosts();
+          refreshPosts(); // Mettre à jour les posts après suppression
         } else {
           const errorText = await response.text();
           setErrorMessage(`Erreur lors de la suppression du post: ${errorText}`);
@@ -91,27 +89,31 @@ function Post({ post, refreshPosts, readonly }) {
   };
 
   return (
-    <div>
-      <Link to={`/user/${postAuthor.username || 'unknown'}`}>
-        {postAuthor.username || 'Utilisateur inconnu'}
-      </Link>
-      <p>{post.text}</p>
+    <div className="post-container">
+      <div className="post-header">
+        <Link to={`/user/${postAuthor.username || 'unknown'}`} className="post-author">
+          {postAuthor.username || 'Utilisateur inconnu'}
+        </Link>
+      </div>
+      <p className="post-text">{post.text}</p>
 
-      {/* Affichage des actions uniquement si readonly est faux */}
-      {!readonly && user?.jwt && (
-        <>
-          <button onClick={handleLikeToggle}>
-            {hasLiked ? "Je n'aime plus" : "J'aime"}
-          </button>
-          <span>{likeCount} likes</span>
+      {/* Affichage des actions uniquement si readonly est faux et si l'utilisateur est connecté */}
+      <div className="post-actions">
+        {!readonly && user?.jwt && (
+          <>
+            <button onClick={handleLikeToggle} className="like-button">
+              {hasLiked ? "Je n'aime plus" : "J'aime"}
+            </button>
+            <span className="like-count">{likeCount} likes</span>
 
-          {String(user?.user?.id) === String(postAuthorId) && (
-            <button onClick={handleDelete}>Supprimer</button>
-          )}
-        </>
-      )}
+            {String(user?.user?.id) === String(postAuthorId) && (
+              <button onClick={handleDelete} className="delete-button">Supprimer</button>
+            )}
+          </>
+        )}
+      </div>
 
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
     </div>
   );
 }

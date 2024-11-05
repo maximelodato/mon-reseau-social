@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../atoms';
+import './CreatePost.css';
 
 function CreatePost({ refreshPosts }) {
   const [user] = useAtom(userAtom);
@@ -18,7 +19,7 @@ function CreatePost({ refreshPosts }) {
     const data = {
       data: {
         text,
-        author: user.user.id, // Utilisez 'author' ici
+        author: user.user.id,
       },
     };
 
@@ -47,15 +48,16 @@ function CreatePost({ refreshPosts }) {
   };
 
   return (
-    <form onSubmit={handleCreatePost}>
+    <form onSubmit={handleCreatePost} className="create-post-form">
       <input
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Écrivez quelque chose..."
         required
+        className="create-post-input"
       />
-      <button type="submit">Publier</button>
+      <button type="submit" className="create-post-button">Publier</button>
     </form>
   );
 }

@@ -45,11 +45,11 @@ function PostDetails() {
     } finally {
       setLoading(false);
     }
-  }, [post_id, user?.jwt]); // Ajout de `post_id` et `user?.jwt` dans les dépendances
+  }, [post_id, user?.jwt]); // Ajout de post_id et user?.jwt dans les dépendances
 
   useEffect(() => {
     fetchPostDetails();
-  }, [fetchPostDetails]); // Ajout de `fetchPostDetails` comme dépendance
+  }, [fetchPostDetails]); // Ajout de fetchPostDetails comme dépendance
 
   return (
     <div>
@@ -63,8 +63,8 @@ function PostDetails() {
           <p>Texte : {post.text}</p>
           <p>Likes : {post.like}</p>
           <p>Modifié : {post.modified ? "Oui" : "Non"}</p>
-          <p>Créé le : {new Date(post.createdAt).toLocaleString()}</p>
-          <p>Mis à jour le : {new Date(post.updatedAt).toLocaleString()}</p>
+          <p>Créé le : {post.createdAt ? new Date(post.createdAt).toLocaleString() : "Non disponible"}</p>
+          <p>Mis à jour le : {post.updatedAt ? new Date(post.updatedAt).toLocaleString() : "Non disponible"}</p>
         </>
       ) : (
         <p>Post non trouvé.</p>
